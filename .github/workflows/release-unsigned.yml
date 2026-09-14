@@ -91,8 +91,17 @@ jobs:
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ inputs.tag }}
         run: |
-          test -n "$(find release-assets -type f -print -quit)"
-          gh release create "$RELEASE_TAG" release-assets/* \
-            --title "dsh-miles $RELEASE_TAG" \
-            --notes "Unsigned test release for manual installation. macOS users may need to remove quarantine before opening." \
-            --prerelease
+          mapfile -d '' assets < <(find release-assets -type f -print0)
+          test "${#assets[@]}" -gt 0
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber
+            gh release edit "$RELEASE_TAG" \
+              --title "dsh-miles $RELEASE_TAG" \
+              --notes "Unsigned test release for manual installation. macOS users may need to remove quarantine before opening." \
+              --prerelease
+          else
+            gh release create "$RELEASE_TAG" "${assets[@]}" \
+              --title "dsh-miles $RELEASE_TAG" \
+              --notes "Unsigned test release for manual installation. macOS users may need to remove quarantine before opening." \
+              --prerelease
+          fi
