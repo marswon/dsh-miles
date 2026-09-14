@@ -955,7 +955,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "deepseek-harness-desktop"
+name = "dsh-miles"
 version = "0.14.1"
 dependencies = [
  "arboard",
