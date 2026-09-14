@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Deepseek Harness Desktop",
+  "productName": "dsh-miles",
   "version": "0.14.1",
-  "identifier": "io.github.hairyf.deepseek-harness-desktop",
+  "identifier": "com.marswon.dsh-miles",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://localhost:1420",
@@ -30,7 +30,7 @@
     "resources": ["resources/**/*"],
     "licenseFile": "licenses/INSTALLER-LICENSE.txt",
     "category": "DeveloperTool",
-    "copyright": "Copyright © 2026 Deepseek Harness Desktop contributors",
+    "copyright": "Copyright © 2026 dsh-miles contributors",
     "macOS": {
       "minimumSystemVersion": "10.15",
       "hardenedRuntime": true
@@ -48,7 +48,7 @@
         "fragmentPaths": ["./windows/fragments/autostart-cleanup.wxs"]
       }
     },
-    "shortDescription": "Desktop application for DeepSeek Harness",
-    "longDescription": "A native desktop application for running DeepSeek Harness (dsh) locally with one-click install and zero configuration."
+    "shortDescription": "Desktop application for dsh-miles",
+    "longDescription": "A native desktop application for running dsh-miles locally with one-click install and zero configuration."
   }
 }

@@ -1,0 +1,67 @@
+name: Build macOS unsigned
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build macOS arm64 unsigned
+    runs-on: macos-14
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: aarch64-apple-darwin
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build unsigned app
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ''
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ''
+        run: >-
+          pnpm tauri build
+          --target aarch64-apple-darwin
+          --bundles app
+          --no-sign
+          --config '{"bundle":{"macOS":{"signingIdentity":null,"hardenedRuntime":false}}}'
+
+      - name: Verify app bundle
+        shell: bash
+        run: |
+          app_path="$(find src-tauri/target/aarch64-apple-darwin/release/bundle/macos -type d -name '*.app' -print -quit)"
+          test -n "$app_path"
+          test -f "$app_path/Contents/MacOS/dsh-miles"
+          file "$app_path/Contents/MacOS/dsh-miles"
+          codesign -dv --verbose=2 "$app_path" 2>&1 || true
+
+      - name: Archive unsigned app
+        shell: bash
+        run: |
+          app_path="$(find src-tauri/target/aarch64-apple-darwin/release/bundle/macos -type d -name '*.app' -print -quit)"
+          ditto -c -k --sequesterRsrc --keepParent "$app_path" dsh-miles-macos-arm64-unsigned.zip
+
+      - name: Upload unsigned app
+        uses: actions/upload-artifact@v4
+        with:
+          name: dsh-miles-macos-arm64-unsigned
+          path: dsh-miles-macos-arm64-unsigned.zip
+          if-no-files-found: error
+          retention-days: 14

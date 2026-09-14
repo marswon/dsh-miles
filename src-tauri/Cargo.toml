@@ -1,8 +1,8 @@
 [package]
-name = "deepseek-harness-desktop"
+name = "dsh-miles"
 version = "0.14.1"
-description = "Desktop application for DeepSeek Harness (dsh)"
-authors = [ "deepseek-harness-desktop contributors" ]
+description = "Desktop application for DeepSeek Harness (dsh-miles)"
+authors = [ "dsh-miles contributors" ]
 edition = "2021"
 
 [lib]

@@ -1,6 +1,6 @@
-//! 桌面应用自更新模块。
+//! dsh-miles 桌面应用自更新模块。
 //!
-//! 与 `dsh` 内核更新（`download` 模块）不同，这里负责「DeepSeek Harness 桌面端」
+//! 与 `dsh` 内核更新（`download` 模块）不同，这里负责「dsh-miles 桌面端」
 //! 自身的更新：查询 GitHub Release 的最新版本、下载安装包、并交给系统打开安装器。
 //!
 //! 设计考量：
@@ -36,11 +36,11 @@ pub use install::{check, download, open_installer, DesktopDownloadProgress, Desk
 pub use pending::launch_pending_installer;
 
 /// 仓库主页（同时用于构造 atom / expanded_assets / 下载地址）
-const REPO_URL: &str = "https://github.com/hairyf/deepseek-harness-desktop";
+const REPO_URL: &str = "https://github.com/marswon/dsh-miles";
 /// 版权信息（与 tauri.conf.json bundle.copyright 保持一致）
-const COPYRIGHT: &str = "Copyright © 2026 Deepseek Harness Desktop contributors";
+const COPYRIGHT: &str = "Copyright © 2026 dsh-miles contributors";
 /// About 对话框的 "Powered by" 文案
-const POWERED_BY: &str = "DeepSeek Harness";
+const POWERED_BY: &str = "dsh-miles";
 /// AppData 下安装包存放目录名
 const UPDATES_DIR: &str = "updates";
 /// 安装包下载总时长上限（秒）。

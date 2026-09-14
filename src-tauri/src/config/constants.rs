@@ -9,7 +9,7 @@ pub const NODE_BASE_URL: &str = "https://nodejs.org/dist/";
 /// Node.js 镜像下载地址（npmmirror，302 重定向至 cdn.npmmirror.com）
 pub const NODE_MIRROR_BASE_URL: &str = "https://npmmirror.com/mirrors/node/";
 
-/// 打包的 DeepSeek Harness 发行版下载地址（GitHub Release，默认首选源）
+/// 打包的 dsh 发行版下载地址（GitHub Release，默认首选源）
 pub const DSH_CORE_URL: &str =
     "https://github.com/dsh-tauri-desk/deepseek-harness-pkg/releases/latest/download/";
 
