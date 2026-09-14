@@ -1,0 +1,98 @@
+name: Release unsigned desktop builds
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag, for example v0.14.1
+        required: true
+        default: v0.14.1
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-unsigned-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  macos:
+    name: Build macOS arm64 unsigned
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-node-pnpm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: aarch64-apple-darwin
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build app
+        run: >-
+          pnpm tauri build
+          --target aarch64-apple-darwin
+          --bundles app
+          --no-sign
+          --config '{"bundle":{"macOS":{"signingIdentity":null,"hardenedRuntime":false}}}'
+      - name: Archive app
+        run: |
+          app_path="$(find src-tauri/target/aarch64-apple-darwin/release/bundle/macos -type d -name '*.app' -print -quit)"
+          test -n "$app_path"
+          ditto -c -k --sequesterRsrc --keepParent "$app_path" "dsh-miles-${{ inputs.tag }}-macos-arm64-unsigned.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dsh-miles-macos-arm64
+          path: dsh-miles-${{ inputs.tag }}-macos-arm64-unsigned.zip
+          if-no-files-found: error
+
+  windows:
+    name: Build Windows x64 unsigned
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-node-pnpm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: x86_64-pc-windows-msvc
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build app
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ''
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ''
+        run: pnpm tauri build --target x86_64-pc-windows-msvc --bundles nsis,msi --no-sign
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dsh-miles-windows-x64
+          path: |
+            src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
+            src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi
+          if-no-files-found: error
+
+  publish:
+    name: Publish unsigned release
+    needs: [macos, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          test -n "$(find release-assets -type f -print -quit)"
+          gh release create "$RELEASE_TAG" release-assets/* \
+            --title "dsh-miles $RELEASE_TAG" \
+            --notes "Unsigned test release for manual installation. macOS users may need to remove quarantine before opening." \
+            --prerelease
