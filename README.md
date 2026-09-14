@@ -175,4 +175,4 @@ Harness 发行版由 [deepseek-harness-pkg](https://github.com/dsh-tauri-desk/de
 
 ## License
 
-[MIT](./LICENSE)，附加[非商用条款](./LICENSE.details) © deepseek-harness-desktop contributors
+[MIT](./LICENSE)，附加[非商用条款](./LICENSE.details) © 2026 dsh-miles

@@ -2,7 +2,7 @@
 name = "dsh-miles"
 version = "0.14.1"
 description = "Desktop application for DeepSeek Harness (dsh-miles)"
-authors = [ "dsh-miles contributors" ]
+authors = [ "dsh-miles" ]
 edition = "2021"
 
 [lib]

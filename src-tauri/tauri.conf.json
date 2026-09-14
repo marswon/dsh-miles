@@ -30,7 +30,7 @@
     "resources": ["resources/**/*"],
     "licenseFile": "licenses/INSTALLER-LICENSE.txt",
     "category": "DeveloperTool",
-    "copyright": "Copyright © 2026 dsh-miles contributors",
+    "copyright": "Copyright © 2026 dsh-miles",
     "macOS": {
       "minimumSystemVersion": "10.15",
       "hardenedRuntime": true

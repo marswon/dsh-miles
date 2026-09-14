@@ -178,4 +178,4 @@ Reference repositories cloned under `source/` as plugins need them; most are not
 
 ## License
 
-[MIT](./LICENSE) with a [Non-Commercial Condition](./LICENSE.details) © deepseek-harness-desktop contributors
+[MIT](./LICENSE) with a [Non-Commercial Condition](./LICENSE.details) © 2026 dsh-miles
