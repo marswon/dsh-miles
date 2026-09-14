@@ -55,10 +55,9 @@ pub fn run() {
             // 残留并把原生模块 DLL（如 sharp 的 libvips-42.dll）锁在内存，
             // 下次启动重新解压时会失败（Windows os error 32）
             tauri::RunEvent::Exit => {
-                let setting = config::get_store_dat_setting(app_handle);
-                if setting.installed {
-                    service::workflow::stop_on_exit(app_handle.clone(), setting.port);
-                }
+                // 即使 store 状态未写成 installed，也必须回收当前应用持有的 Harness
+                // 进程；更新、异常退出或首次启动失败都可能让该标记滞后。
+                service::workflow::stop_on_exit(app_handle.clone(), 0);
                 // 已下载但用户没在应用内安装过更新 → 退出后自动打开安装器：
                 // 静默下载不打扰用户，代价是用户可能一直不主动升级，这里补上
                 // 「关闭应用即升级」这一步（安装器由系统默认处理器启动）。

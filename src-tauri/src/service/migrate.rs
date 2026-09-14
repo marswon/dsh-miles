@@ -31,6 +31,61 @@ fn legacy_dsh_home(app_handle: &AppHandle) -> PathBuf {
         .join(config::DSH_DATA_DIR_NAME)
 }
 
+/// Electron 桌面端使用的 Harness 用户数据根目录。
+/// 这里只读取用户内容；Electron 的 Chromium 缓存不在此目录中。
+fn legacy_electron_harness_home() -> Option<PathBuf> {
+    dirs::data_dir().map(|dir| dir.join("DeepSeek Harness").join("harness"))
+}
+
+const ELECTRON_USER_DIRS: &[&str] = &[
+    "sessions",
+    "storages",
+    "memory",
+    "task-board",
+    ".agent-presets",
+    "settings.yaml",
+    "skin-center-active.json",
+    "pet.json",
+    ".credentials.yaml",
+];
+
+fn migrate_electron_user_data(target: &Path) -> Result<(), String> {
+    let Some(source) = legacy_electron_harness_home() else {
+        return Ok(());
+    };
+    if !source.is_dir() || source == target {
+        return Ok(());
+    }
+
+    let marker = target.join(".electron-data-migrated");
+    if marker.exists() {
+        return Ok(());
+    }
+    fs::create_dir_all(target).map_err(|e| format!("create {} failed: {e}", target.display()))?;
+    for relative in ELECTRON_USER_DIRS {
+        let src = source.join(relative);
+        if !src.exists() {
+            continue;
+        }
+        let dst = target.join(relative);
+        if src.is_dir() {
+            merge_tree(&src, &dst)?;
+        } else if !dst.exists() || src_newer(&src, &dst) {
+            if let Some(parent) = dst.parent() {
+                fs::create_dir_all(parent)
+                    .map_err(|e| format!("create {} failed: {e}", parent.display()))?;
+            }
+            fs::copy(&src, &dst).map_err(|e| {
+                format!("copy {} -> {} failed: {e}", src.display(), dst.display())
+            })?;
+        }
+    }
+    fs::write(&marker, b"migrated from Electron DeepSeek Harness\n")
+        .map_err(|e| format!("write {} failed: {e}", marker.display()))?;
+    log::info!("Electron user data migrated: {} -> {}", source.display(), target.display());
+    Ok(())
+}
+
 /// 启动早期调用：把旧版 AppData 数据目录迁移到官方 `$DSH_HOME`。
 ///
 /// 幂等：成功后会删除旧目录并置位 `.store.dat` 标记，重复调用为 no-op。
@@ -46,12 +101,17 @@ pub fn migrate(app_handle: &AppHandle) -> Result<(), String> {
 
     let setting = config::get_store_dat_setting(app_handle);
     if setting.dsh_home_migrated {
-        log::debug!("dsh home migration already done, skipping");
+        migrate_electron_user_data(&config::get_dsh_data_path(app_handle))?;
+        log::debug!("dsh home migration already done, skipping legacy AppData move");
         return Ok(());
     }
 
     let legacy = legacy_dsh_home(app_handle);
     let target = config::get_dsh_data_path(app_handle);
+
+    // Electron 版把会话和工作区放在 Application Support/harness，而不是旧版
+    // AppData/data/dsh；两种来源都尝试迁移，源目录始终保留以便回滚。
+    migrate_electron_user_data(&target)?;
 
     // 旧目录不存在（全新安装 / 官方安装场景）→ 无需迁移
     if !legacy.exists() {
