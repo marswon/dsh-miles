@@ -21,3 +21,6 @@ skills
 source/
 .gitmodules
 .tmp-alpha-inspect
+# 本地构建用的 corepack / pnpm 缓存（见 README 的离线安装说明），不入库
+.corepack/
+.pnpm/
