@@ -92,17 +92,6 @@ El primer arranque descarga el runtime de Node y el núcleo Harness (si `dsh` ya
 
 > **Nota Wayland en Linux (PikaOS / GNOME Wayland / Ubuntu 22.04+):** el AppImage puede crashear o verse negro en Wayland por WebKitGTK; la app corrige sola el caso común. <details><summary>Si igual crashea / se ve negro:</summary><br>**Preferí el `.deb`** (verificado en PikaOS 4 Wayland), o ejecutá a mano `WEBKIT_DISABLE_COMPOSITING_MODE=1 WEBKIT_DISABLE_DMABUF_RENDERER=1 GDK_BACKEND=x11 ./AppImage`. Si no aparecen los iconos, copiá los iconos `hicolor` de la app a `~/.local/share/icons` y ejecutá `update-desktop-database`.<br></details>
 
-## Comunidad
-
-- [Unite a la comunidad de Discord](https://discord.gg/RT9As6Cj8B)
-
-<table>
-  <tr>
-    <td align="center"><strong>Grupo QQ</strong><br /><img src="./docs/images/community/qq-qrcode.jpg" width="360" alt="QR del grupo QQ" /></td>
-    <td align="center"><strong>Grupo WeChat</strong><br /><img src="./docs/images/community/wx-qrcode.png" width="360" alt="QR del grupo WeChat" /></td>
-  </tr>
-</table>
-
 ## Desarrollo
 
 ¿Querés participar del desarrollo? Mirá [docs/DEVELOPMENT.md](./docs/DEVELOPMENT.md).

@@ -92,17 +92,6 @@ The first run downloads the Node runtime and Harness core (if `dsh` is already i
 
 > **Linux Wayland note (PikaOS / GNOME Wayland / Ubuntu 22.04+):** AppImage may crash or render black on Wayland due to WebKitGTK; the app auto-fixes the common case. <details><summary>If it still crashes / renders black:</summary><br>**Prefer `.deb`** (verified on PikaOS 4 Wayland), or manually run `WEBKIT_DISABLE_COMPOSITING_MODE=1 WEBKIT_DISABLE_DMABUF_RENDERER=1 GDK_BACKEND=x11 ./AppImage`. If icons do not appear, copy the app's `hicolor` icons to `~/.local/share/icons` and run `update-desktop-database`.<br></details>
 
-## Community
-
-- [Join the Discord community](https://discord.gg/RT9As6Cj8B)
-
-<table>
-  <tr>
-    <td align="center"><strong>QQ Group</strong><br /><img src="./docs/images/community/qq-qrcode.jpg" width="360" alt="QQ group QR code" /></td>
-    <td align="center"><strong>WeChat Group</strong><br /><img src="./docs/images/community/wx-qrcode.png" width="360" alt="WeChat group QR code" /></td>
-  </tr>
-</table>
-
 ## Dev
 
 Want to get involved in development? See [docs/DEVELOPMENT.md](./docs/DEVELOPMENT.md).
