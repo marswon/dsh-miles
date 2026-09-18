@@ -49,6 +49,40 @@ jobs:
           path: dsh-miles-${{ inputs.tag }}-macos-arm64-unsigned.zip
           if-no-files-found: error
 
+  macos-intel:
+    name: Build macOS x64 (Intel) unsigned
+    # 在 Apple Silicon runner 上交叉编译 x86_64：Intel 旧 runner 已退役，
+    # 本应用为纯 Rust + WebView（Node 运行时首启时按架构下载），交叉编译安全。
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-node-pnpm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: x86_64-apple-darwin
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build app
+        run: >-
+          pnpm tauri build
+          --target x86_64-apple-darwin
+          --bundles app
+          --no-sign
+          --config '{"bundle":{"macOS":{"signingIdentity":null,"hardenedRuntime":false}}}'
+      - name: Archive app
+        run: |
+          app_path="$(find src-tauri/target/x86_64-apple-darwin/release/bundle/macos -type d -name '*.app' -print -quit)"
+          test -n "$app_path"
+          ditto -c -k --sequesterRsrc --keepParent "$app_path" "dsh-miles-${{ inputs.tag }}-macos-x64-unsigned.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dsh-miles-macos-x64
+          path: dsh-miles-${{ inputs.tag }}-macos-x64-unsigned.zip
+          if-no-files-found: error
+
   windows:
     name: Build Windows x64 unsigned
     runs-on: windows-latest
@@ -76,9 +110,54 @@ jobs:
             src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi
           if-no-files-found: error
 
+  linux:
+    name: Build Linux x64 (Ubuntu 22.04) unsigned
+    # 与 build-linux.yml 一致：22.04 的 glibc/WebKitGTK 产物兼容 22.04 及更新版本。
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-node-pnpm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+      - name: Install system dependencies
+        run: |
+          apt_ok=0
+          for i in {1..3}; do
+            if timeout 180 sudo apt-get update \
+              -o Acquire::Retries=5 \
+              -o Acquire::http::Timeout=60 \
+              -o Acquire::https::Timeout=60 \
+              -o Acquire::ftp::Timeout=60; then
+              apt_ok=1
+              break
+            fi
+            echo "apt-get update failed, retrying ($i/3)..."
+            sleep 10
+          done
+          [ "$apt_ok" = "1" ] || { echo "apt-get update failed 3 times, aborting"; exit 1; }
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build app
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ''
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ''
+        run: pnpm tauri build --bundles appimage,deb --no-sign
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dsh-miles-linux-x64
+          path: |
+            src-tauri/target/release/bundle/appimage/*.AppImage
+            src-tauri/target/release/bundle/deb/*.deb
+          if-no-files-found: error
+
   publish:
     name: Publish unsigned release
-    needs: [macos, windows]
+    needs: [macos, macos-intel, windows, linux]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
