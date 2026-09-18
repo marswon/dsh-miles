@@ -33,8 +33,28 @@ fn legacy_dsh_home(app_handle: &AppHandle) -> PathBuf {
 
 /// Electron 桌面端使用的 Harness 用户数据根目录。
 /// 这里只读取用户内容；Electron 的 Chromium 缓存不在此目录中。
+/// 路径按平台手写，不引入新的 crate 依赖（与 Electron 的 userData 规则一致）。
 fn legacy_electron_harness_home() -> Option<PathBuf> {
-    dirs::data_dir().map(|dir| dir.join("DeepSeek Harness").join("harness"))
+    electron_data_base().map(|dir| dir.join("DeepSeek Harness").join("harness"))
+}
+
+/// Electron `app.getPath('userData')` 的父目录（不含应用名）。
+#[cfg(target_os = "macos")]
+fn electron_data_base() -> Option<PathBuf> {
+    std::env::var_os("HOME")
+        .map(|home| PathBuf::from(home).join("Library/Application Support"))
+}
+
+#[cfg(target_os = "windows")]
+fn electron_data_base() -> Option<PathBuf> {
+    std::env::var_os("APPDATA").map(PathBuf::from)
+}
+
+#[cfg(all(unix, not(target_os = "macos")))]
+fn electron_data_base() -> Option<PathBuf> {
+    std::env::var_os("XDG_CONFIG_HOME")
+        .map(PathBuf::from)
+        .or_else(|| std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".config")))
 }
 
 const ELECTRON_USER_DIRS: &[&str] = &[
